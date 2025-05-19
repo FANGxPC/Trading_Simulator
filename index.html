@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StockVibe - Trading Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js CDN for the trading graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo">
+                <i class="fas fa-chart-line logo-icon"></i>
+                <span>StockVibe</span>
+            </div>
+            
+            <nav class="main-nav">
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li><a href="#"><i class="fas fa-briefcase"></i> My Portfolio</a></li>
+                    <li><a href="#"><i class="fas fa-history"></i> History</a></li>
+                    <li><a href="#"><i class="fas fa-money-bill-wave"></i> Stocks</a></li>
+                    <li><a href="#"><i class="fas fa-exchange-alt"></i> Exchanges</a></li>
+                    <li><a href="#"><i class="fas fa-users"></i> Community</a></li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="#"><i class="fas fa-question-circle"></i> Help</a>
+                <a href="#"><i class="fas fa-cog"></i> Settings</a>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header Bar -->
+            <header class="top-header">
+                <div class="market-status">
+                    <span class="date-today" id="currentDate"></span>
+                    <div class="market-indicators">
+                        <span class="market-item"><i class="fas fa-chevron-up"></i> S&P 500: <span class="value up">+0.45%</span></span>
+                        <span class="market-item"><i class="fas fa-chevron-down"></i> NASDAQ: <span class="value down">-0.22%</span></span>
+                        <span class="market-item"><i class="fas fa-chevron-up"></i> DOW: <span class="value up">+0.18%</span></span>
+                    </div>
+                </div>
+                
+                <div class="user-area">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search...">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="user-profile">
+                        <span>John Trader</span>
+                        <div class="profile-image"></div>
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Content -->
+            <div class="dashboard">
+                <!-- Stats Overview Cards -->
+                <section class="stats-cards">
+                    <div class="stat-card total-balance">
+                        <div class="card-header">Total Balance</div>
+                        <div class="card-value">$<span id="currentBalance">10000.00</span></div>
+                        <div class="change-indicator up"><i class="fas fa-arrow-up"></i> <span id="balanceChange">+0.25%</span></div>
+                    </div>
+                    
+                    <div class="stat-card total-portfolio">
+                        <div class="card-header">Total Portfolio</div>
+                        <div class="card-value">$<span id="totalPortfolio">0.00</span></div>
+                        <div class="change-indicator" id="portfolioChangeContainer"><i class="fas fa-arrow-right"></i> <span id="portfolioChange">0.00%</span></div>
+                    </div>
+                </section>
+
+                <!-- Main Chart Section -->
+                <section class="main-chart-section">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <h2 id="chartSymbol">AAPL</h2>
+                            <div class="current-price">
+                                $<span id="chartPrice">0.00</span>
+                                <span class="price-change" id="chartPriceChange">0.00%</span>
+                            </div>
+                        </div>
+                        <div class="chart-options">
+                            <div class="time-filters">
+                                <button class="time-filter">1H</button>
+                                <button class="time-filter active">1D</button>
+                                <button class="time-filter">1W</button>
+                                <button class="time-filter">1M</button>
+                                <button class="time-filter">1Y</button>
+                                <button class="time-filter">ALL</button>
+                            </div>
+                            <div class="chart-actions">
+                                <button class="action-btn buy-btn">Buy Now</button>
+                                <button class="action-btn sell-btn">Sell Now</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="tradingChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Trade Section & Market Data -->
+                <div class="bottom-sections">
+                    <!-- Trading Form Section -->
+                    <section class="trade-section">
+                        <h3>Execute Trade</h3>
+                        <form id="tradeForm" class="modern-form">
+                            <div class="input-group">
+                                <label for="stockSymbol">Stock Symbol</label>
+                                <input type="text" id="stockSymbol" placeholder="e.g. AAPL" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="quantity">Quantity</label>
+                                <input type="number" id="quantity" placeholder="Amount" min="1" required>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="tradeType">Trade Type</label>
+                                <select id="tradeType">
+                                    <option value="buy">Buy</option>
+                                    <option value="sell">Sell</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="trade-btn">Execute Trade</button>
+                        </form>
+
+                        <!-- Stock to USD Converter -->
+                        <div class="converter-tool">
+                            <h3>Stock to USD Converter</h3>
+                            <div class="converter-inputs">
+                                <div class="converter-group">
+                                    <input type="number" id="stockAmount" placeholder="1">
+                                    <select id="stockSelect">
+                                        <option value="AAPL">AAPL</option>
+                                        <option value="MSFT">MSFT</option>
+                                        <option value="GOOGL">GOOGL</option>
+                                        <option value="TSLA">TSLA</option>
+                                    </select>
+                                </div>
+                                <i class="fas fa-exchange-alt"></i>
+                                <div class="converter-group">
+                                    <input type="number" id="usdAmount" placeholder="0.00" readonly>
+                                    <div class="currency-label">USD</div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    
+                    <!-- Market Table Section -->
+                    <section class="market-section">
+                        <div class="section-header">
+                            <h3>Today's Stock Prices</h3>
+                            <div class="market-subtitle">The global market cap reached $1.23T <span class="up">+0.38%</span></div>
+                        </div>
+                        <table id="marketTable" class="modern-table">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Price</th>
+                                    <th>Change</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="marketBody">
+                                <!-- Dynamically populated -->
+                            </tbody>
+                        </table>
+                    </section>
+                </div>
+                
+                <!-- Portfolio Table Section -->
+                <section class="portfolio-section">
+                    <h3>My Portfolio</h3>
+                    <table id="portfolioTable" class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Total Value</th>
+                                <th>Profit/Loss</th>
+                            </tr>
+                        </thead>
+                        <tbody id="portfolioBody">
+                            <!-- Dynamically populated -->
+                        </tbody>
+                    </table>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- API Integration Notice -->
+    <div id="apiNotice" class="api-notice">
+        <p><i class="fas fa-info-circle"></i> Using simulated data. For real-time data, configure API key in app.js.</p>
+        <button id="closeApiNotice"><i class="fas fa-times"></i></button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
