@@ -7,11 +7,11 @@
  */
 
 // === API Configuration ===
-const API_KEY = 'YOUR_API_KEY_HERE'; // <-- PLACE YOUR PROVIDER API KEY HERE
+const API_KEY = 'I7WJKO27WH9RSZF7'; // <-- PLACE YOUR PROVIDER API KEY HERE
 
 // Example base URLs (replace these with your provider's)
-const QUOTE_API_URL = 'https://api.example.com/quote';      // Replace with actual
-const HISTORY_API_URL = 'https://api.example.com/history';  // Replace with actual
+const QUOTE_API_URL = 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=AAPL&apikey=I7WJKO27WH9RSZF7y';
+const HISTORY_API_URL = 'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&apikey=I7WJKO27WH9RSZF7y';
 
 // Stocks tracked by default
 const defaultTrackedSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'META'];
@@ -59,126 +59,69 @@ const closeApiNoticeBtn = document.getElementById('closeApiNotice');
 
 // ======== API Integration Functions ========
 async function fetchStockQuote(symbol) {
-    // REPLACE EXAMPLE CODE BELOW to match selected provider
-    // Example: Finnhub
-    // let resp = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`);
-    // let data = await resp.json();
-    // return { symbol, price: data.c, change: data.dp };
-
-    // For template/demonstration, simulate realistic data
-    const basePrices = {
-        'AAPL': 175.52,
-        'GOOGL': 142.38,
-        'MSFT': 325.76,
-        'TSLA': 237.49,
-        'AMZN': 178.62,
-        'META': 432.28,
-        'NVDA': 865.73,
-        'AMD': 145.82,
-        'PYPL': 62.24,
-        'NFLX': 614.92
-    };
-    
-    return new Promise(resolve => {
-        setTimeout(() => {
-            // Use base price if known, otherwise generate random one
-            const basePrice = basePrices[symbol] || (Math.random() * 500 + 50).toFixed(2) * 1;
-            // Generate a realistic price change
-            const volatility = 0.03; // 3% daily volatility
-            const fakeChange = ((Math.random() * 2 - 1) * volatility * 100).toFixed(2) * 1;
-            const fakePrice = (basePrice * (1 + fakeChange / 100)).toFixed(2) * 1;
-            
-            resolve({ symbol, price: fakePrice, change: fakeChange });
-        }, 250);
-    });
+    try {
+        let resp = await fetch(`https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=AAPL&apikey=I7WJKO27WH9RSZF7y`);
+        let data = await resp.json();
+        
+        // Check for API limit message
+        if (data['Note']) {
+            console.warn('API rate limit reached:', data['Note']);
+            alert('API rate limit reached. Please wait a minute and try again.');
+            throw new Error('API rate limit reached');
+        }
+        
+        const quote = data['Global Quote'];
+        if (!quote || !quote['05. price']) {
+            throw new Error('Invalid symbol or data not available');
+        }
+        
+        const price = parseFloat(quote['05. price']);
+        const prevClose = parseFloat(quote['08. previous close']);
+        const change = prevClose ? ((price - prevClose) / prevClose * 100) : 0;
+        
+        return { symbol, price, change };
+    } catch (error) {
+        console.error(`Error fetching quote for ${symbol}:`, error);
+        alert(`Error fetching quote for ${symbol}: ${error.message}`);
+        throw error; // Propagate error so UI can handle it
+    }
 }
 
 async function fetchStockHistory(symbol, timeframe = '1D') {
-    // REPLACE EXAMPLE CODE BELOW to match selected provider
-    // Example: Alpha Vantage TIME_SERIES_DAILY
-    // let resp = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${symbol}&apikey=${API_KEY}`);
-    // let data = await resp.json();
-    // let prices = Object.entries(data['Time Series (Daily)']).reverse().slice(-30)
-    //     .map(([date, info]) => ({ date, close: parseFloat(info['4. close']) }));
-    // return prices;
-
-    // For template/demonstration, simulate price history based on timeframe
-    const basePrices = {
-        'AAPL': 175.52,
-        'GOOGL': 142.38,
-        'MSFT': 325.76,
-        'TSLA': 237.49,
-        'AMZN': 178.62,
-        'META': 432.28,
-        'NVDA': 865.73,
-        'AMD': 145.82,
-        'PYPL': 62.24,
-        'NFLX': 614.92
-    };
-    
-    let dataPoints;
-    let timeInterval;
-    let now = new Date();
-    let basePrice = basePrices[symbol] || (Math.random() * 500 + 50);
-    
-    // Configure data generation based on selected timeframe
-    switch(timeframe) {
-        case '1H':
-            dataPoints = 60;
-            timeInterval = 60 * 1000; // 1 minute
-            break;
-        case '1D':
-            dataPoints = 24;
-            timeInterval = 60 * 60 * 1000; // 1 hour
-            break;
-        case '1W':
-            dataPoints = 7;
-            timeInterval = 24 * 60 * 60 * 1000; // 1 day
-            break;
-        case '1M':
-            dataPoints = 30;
-            timeInterval = 24 * 60 * 60 * 1000; // 1 day
-            break;
-        case '1Y':
-            dataPoints = 12;
-            timeInterval = 30 * 24 * 60 * 60 * 1000; // ~1 month
-            break;
-        case 'ALL':
-            dataPoints = 60;
-            timeInterval = 90 * 24 * 60 * 60 * 1000; // ~3 months
-            break;
-        default:
-            dataPoints = 24;
-            timeInterval = 60 * 60 * 1000; // 1 hour
-    }
-
-    // Generate data with some realistic patterns
-    let history = [];
-    let trend = Math.random() > 0.5 ? 1 : -1; // Random trend direction
-    let volatility = basePrice * 0.005; // 0.5% volatility per point
-    
-    for (let i = dataPoints - 1; i >= 0; i--) {
-        let date = new Date(now - i * timeInterval);
-        // Generate price with trend and random noise
-        let trendComponent = trend * (dataPoints - i) * (basePrice * 0.001);
-        let randomComponent = (Math.random() - 0.5) * volatility;
-        let close = (basePrice + trendComponent + randomComponent).toFixed(2) * 1.0;
+    try {
+        let resp = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=AAPL&apikey=I7WJKO27WH9RSZF7y`);
+        let data = await resp.json();
         
-        // Format date based on timeframe
-        let formattedDate;
-        if (timeframe === '1H') {
-            formattedDate = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        } else if (['1D', '1W', '1M'].includes(timeframe)) {
-            formattedDate = date.toLocaleDateString([], {month: 'short', day: 'numeric'});
-        } else {
-            formattedDate = date.toLocaleDateString([], {year: 'numeric', month: 'short'});
+        // Check for API limit message
+        if (data['Note']) {
+            console.warn('API rate limit reached:', data['Note']);
+            alert('API rate limit reached. Please wait a minute and try again.');
+            throw new Error('API rate limit reached');
         }
         
-        history.push({ date: formattedDate, close });
+        const series = data['Time Series (Daily)'];
+        if (!series) {
+            throw new Error('Invalid symbol or data not available');
+        }
+        
+        // Get the last 30 days of data and format it
+        let prices = Object.entries(series)
+            .slice(0, 30)
+            .map(([date, info]) => ({
+                date,
+                close: parseFloat(info['4. close'])
+            }))
+            .reverse();
+            
+        return prices;
+    } catch (error) {
+        console.error(`Error fetching history for ${symbol}:`, error);
+        alert(`Error fetching history for ${symbol}: ${error.message}`);
+        throw error; // Propagate error so UI can handle it
     }
-    
-    return history;
 }
+
+// API Integration Functions section end
 
 // ========== Market Data/Portfolio/Graph Logic ==========
 
@@ -234,12 +177,25 @@ async function updateMarketDataAndUI() {
     const allSymbolsSet = new Set([...defaultTrackedSymbols, ...Object.keys(portfolio)]);
     const allSymbols = Array.from(allSymbolsSet);
     
-    const promises = allSymbols.map(async (symbol) => {
-        let data = await fetchStockQuote(symbol);
-        marketData[symbol] = data;
-    });
-    
-    await Promise.all(promises);
+    try {
+        const promises = allSymbols.map(async (symbol) => {
+            try {
+                let data = await fetchStockQuote(symbol);
+                marketData[symbol] = data;
+            } catch (error) {
+                console.error(`Failed to fetch data for ${symbol}:`, error);
+                // Keep existing data if available
+                if (!marketData[symbol]) {
+                    marketData[symbol] = { symbol, price: 0, change: 0 };
+                }
+            }
+        });
+        
+        await Promise.all(promises);
+    } catch (error) {
+        console.error('Error updating market data:', error);
+        alert('There was a problem fetching market data. Some information may be outdated.');
+    }
     
     // Update UI components
     updateMarketTable();
@@ -406,10 +362,28 @@ async function showGraphForSymbol(symbol, timeframe = currentTimeFrame) {
     chartContainer.classList.add('loading');
 
     // Fetch price history with the specified timeframe
-    const history = await fetchStockHistory(symbol, timeframe);
+    try {
+        const history = await fetchStockHistory(symbol, timeframe);
+        
+        // Render the chart
+        renderTradingGraph(symbol, history, timeframe);
+    } catch (error) {
+        console.error(`Failed to load chart data for ${symbol}:`, error);
+        // Show error message in chart area
+        const ctx = tradingChartCanvas.getContext('2d');
+        ctx.clearRect(0, 0, tradingChartCanvas.width, tradingChartCanvas.height);
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#64748b';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Unable to load chart data for ${symbol}`, tradingChartCanvas.width/2, tradingChartCanvas.height/2);
+        
+        // Destroy previous chart if exists
+        if (tradingChart) {
+            tradingChart.destroy();
+            tradingChart = null;
+        }
+    }
 
-    // Render the chart
-    renderTradingGraph(symbol, history, timeframe);
     
     // Remove loading state
     chartContainer.classList.remove('loading');
