@@ -412,7 +412,7 @@ function updateChartHeaderInfo(symbol) {
     
     const data = marketData[symbol];
     chartSymbolElement.textContent = symbol;
-    chartPriceElement.textContent = data.price.toFixed(2);
+    chartPriceElement.textContent = '$' + data.price.toFixed(2);
     
     // Update price change display
     const changeValue = data.change.toFixed(2);
