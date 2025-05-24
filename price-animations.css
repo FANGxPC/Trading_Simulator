@@ -1,0 +1,110 @@
+/**
+ * Price Animation Styles for Trading Simulator
+ * These styles enhance the visual feedback when prices change
+ */
+
+/* Price change animations */
+.price-up {
+    animation: priceUp 1s ease;
+    color: #10b981 !important; /* Green */
+}
+
+.price-down {
+    animation: priceDown 1s ease;
+    color: #ef4444 !important; /* Red */
+}
+
+@keyframes priceUp {
+    0% { background-color: rgba(16, 185, 129, 0.2); }
+    50% { background-color: rgba(16, 185, 129, 0.1); }
+    100% { background-color: transparent; }
+}
+
+@keyframes priceDown {
+    0% { background-color: rgba(239, 68, 68, 0.2); }
+    50% { background-color: rgba(239, 68, 68, 0.1); }
+    100% { background-color: transparent; }
+}
+
+/* Chart animation enhancements */
+.chart-container {
+    transition: all 0.3s ease;
+}
+
+.chart-container.updating {
+    box-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+}
+
+/* Market table row animations */
+#marketBody tr {
+    transition: background-color 0.3s ease;
+}
+
+#marketBody tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Portfolio value change indicators */
+.value-change {
+    position: relative;
+    padding-right: 20px;
+}
+
+.value-change::after {
+    content: "";
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.value-change.positive::after {
+    background-color: #10b981;
+}
+
+.value-change.negative::after {
+    background-color: #ef4444;
+}
+
+/* Live update pulse effect for values */
+.updating .market-price, 
+.updating .portfolio-value,
+.updating .chart-price {
+    transition: text-shadow 0.3s ease;
+    text-shadow: 0 0 5px rgba(74, 222, 128, 0.5);
+}
+
+/* Force update helper class */
+.force-update {
+    /* This class is toggled to force DOM updates */
+    transform: translateZ(0); /* Force GPU rendering to ensure updates are applied */
+}
+
+/* Make price changes more noticeable in tables */
+.price-column, .change-column {
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* Tooltip styles for update information */
+[data-update-time] {
+    position: relative;
+}
+
+[data-update-time]:hover::after {
+    content: attr(data-update-time);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+}

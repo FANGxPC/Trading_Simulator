@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StockVibe - Trading Simulator</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="price-animations.css">
     <!-- Chart.js CDN for the trading graph -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Font Awesome for icons -->
@@ -15,18 +16,20 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="logo">
-                <i class="fas fa-chart-line logo-icon"></i>
-                <span>StockVibe</span>
+            
+                    <i class="fas fa-chart-line logo-icon"></i>
+                    <span>StockVibe</span>
+            
             </div>
             
             <nav class="main-nav">
                 <ul>
-                    <li class="active"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
-                    <li><a href="#"><i class="fas fa-briefcase"></i> My Portfolio</a></li>
-                    <li><a href="#"><i class="fas fa-history"></i> History</a></li>
-                    <li><a href="#"><i class="fas fa-money-bill-wave"></i> Stocks</a></li>
-                    <li><a href="#"><i class="fas fa-exchange-alt"></i> Exchanges</a></li>
-                    <li><a href="#"><i class="fas fa-users"></i> Community</a></li>
+                    <li class="active" data-page="dashboard"><a href="#"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+                    <li data-page="portfolio"><a href="#"><i class="fas fa-briefcase"></i> My Portfolio</a></li>
+                    <li data-page="history"><a href="#"><i class="fas fa-history"></i> History</a></li>
+                    <li data-page="stocks"><a href="#"><i class="fas fa-money-bill-wave"></i> Stocks</a></li>
+                    <li data-page="exchanges"><a href="#"><i class="fas fa-exchange-alt"></i> Exchanges</a></li>
+                    <li data-page="community"><a href="#"><i class="fas fa-users"></i> Community</a></li>
                 </ul>
             </nav>
             
@@ -62,8 +65,11 @@
                 </div>
             </header>
 
-            <!-- Dashboard Content -->
-            <div class="dashboard">
+            <!-- Page Container - All pages will be inside this container -->
+            <div class="page-container">
+                
+                <!-- Dashboard Page -->
+                <div class="page" id="dashboard-page" data-page="dashboard">
                 <!-- Stats Overview Cards -->
                 <section class="stats-cards">
                     <div class="stat-card total-balance">
@@ -89,6 +95,9 @@
                                 <span class="price-change" id="chartPriceChange">0.00%</span>
                             </div>
                         </div>
+                        <div class="chart-controls">
+                            <button id="liveUpdateToggle" class="live-toggle"><i class="fas fa-circle-dot"></i> Live</button>
+                        </div>
                         <div class="chart-options">
                             <div class="time-filters">
                                 <button class="time-filter">1H</button>
@@ -104,8 +113,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas id="tradingChart"></canvas>
+                    <div class="chart-container" style="height: 400px; position: relative; width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                        <canvas id="tradingChart" style="display: block; width: 100%; height: 100%;"></canvas>
                     </div>
                 </section>
 
@@ -198,16 +207,191 @@
                         </tbody>
                     </table>
                 </section>
-            </div>
+                </div> <!-- End of dashboard page -->
+                
+                <!-- Portfolio Page -->
+                <div class="page" id="portfolio-page" data-page="portfolio" style="display: none;">
+                    <h2 class="page-title">My Portfolio</h2>
+                    <div class="page-content">
+                        <section class="portfolio-section full-width">
+                            <h3>My Portfolio Holdings</h3>
+                            <table id="portfolioTableFull" class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Quantity</th>
+                                        <th>Avg. Cost</th>
+                                        <th>Current Price</th>
+                                        <th>Total Value</th>
+                                        <th>Profit/Loss</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="portfolioBodyFull">
+                                    <!-- Dynamically populated -->
+                                </tbody>
+                            </table>
+                        </section>
+                        
+                        <section class="portfolio-summary">
+                            <h3>Portfolio Summary</h3>
+                            <div class="summary-cards">
+                                <div class="summary-card">
+                                    <div class="card-title">Total Value</div>
+                                    <div class="card-value">$<span id="portfolioTotalValue">0.00</span></div>
+                                </div>
+                                <div class="summary-card">
+                                    <div class="card-title">Total Profit/Loss</div>
+                                    <div class="card-value" id="portfolioProfitLossContainer">$<span id="portfolioProfitLoss">0.00</span></div>
+                                </div>
+                                <div class="summary-card">
+                                    <div class="card-title">Performance</div>
+                                    <div class="card-value" id="portfolioPerformanceContainer"><span id="portfolioPerformance">0.00</span>%</div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                
+                <!-- History Page -->
+                <div class="page" id="history-page" data-page="history" style="display: none;">
+                    <h2 class="page-title">Transaction History</h2>
+                    <div class="page-content">
+                        <section class="history-section">
+                            <div class="filter-controls">
+                                <div class="filter-group">
+                                    <label>Filter by:</label>
+                                    <select id="historyFilter">
+                                        <option value="all">All Transactions</option>
+                                        <option value="buy">Buy Orders</option>
+                                        <option value="sell">Sell Orders</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label>Sort by:</label>
+                                    <select id="historySort">
+                                        <option value="date-desc">Date (Newest First)</option>
+                                        <option value="date-asc">Date (Oldest First)</option>
+                                        <option value="amount-desc">Amount (Highest First)</option>
+                                        <option value="amount-asc">Amount (Lowest First)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <table id="historyTable" class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Type</th>
+                                        <th>Symbol</th>
+                                        <th>Quantity</th>
+                                        <th>Price</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyBody">
+                                    <!-- Dynamically populated -->
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+                
+                <!-- Stocks Page -->
+                <div class="page" id="stocks-page" data-page="stocks" style="display: none;">
+                    <h2 class="page-title">Stock Market</h2>
+                    <div class="page-content">
+                        <section class="stocks-section">
+                            <div class="search-filter">
+                                <div class="search-group">
+                                    <input type="text" id="stockSearch" placeholder="Search stocks...">
+                                    <button id="searchStockBtn"><i class="fas fa-search"></i></button>
+                                </div>
+                            </div>
+                            
+                            <table id="stocksTable" class="modern-table">
+                                <thead>
+                                    <tr>
+                                        <th>Symbol</th>
+                                        <th>Price</th>
+                                        <th>Change</th>
+                                        <th>Market Cap</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stocksBody">
+                                    <!-- Dynamically populated -->
+                                </tbody>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+                
+                <!-- Exchanges Page -->
+                <div class="page" id="exchanges-page" data-page="exchanges" style="display: none;">
+                    <h2 class="page-title">Stock Exchanges</h2>
+                    <div class="page-content">
+                        <section class="exchanges-section">
+                            <div class="exchanges-grid">
+                                <div class="exchange-card">
+                                    <div class="exchange-name">NYSE</div>
+                                    <div class="exchange-status up">+0.45%</div>
+                                    <div class="exchange-info">New York Stock Exchange</div>
+                                    <div class="exchange-time">Open: 9:30 AM - 4:00 PM EST</div>
+                                </div>
+                                <div class="exchange-card">
+                                    <div class="exchange-name">NASDAQ</div>
+                                    <div class="exchange-status down">-0.22%</div>
+                                    <div class="exchange-info">National Association of Securities Dealers Automated Quotations</div>
+                                    <div class="exchange-time">Open: 9:30 AM - 4:00 PM EST</div>
+                                </div>
+                                <div class="exchange-card">
+                                    <div class="exchange-name">LSE</div>
+                                    <div class="exchange-status up">+0.18%</div>
+                                    <div class="exchange-info">London Stock Exchange</div>
+                                    <div class="exchange-time">Open: 8:00 AM - 4:30 PM GMT</div>
+                                </div>
+                                <div class="exchange-card">
+                                    <div class="exchange-name">TSE</div>
+                                    <div class="exchange-status up">+0.32%</div>
+                                    <div class="exchange-info">Tokyo Stock Exchange</div>
+                                    <div class="exchange-time">Open: 9:00 AM - 3:00 PM JST</div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+                
+                <!-- Community Page -->
+                <div class="page" id="community-page" data-page="community" style="display: none;">
+                    <h2 class="page-title">Community</h2>
+                    <div class="page-content">
+                        <div class="empty-feature-message">
+                            <i class="fas fa-users feature-icon"></i>
+                            <h3>Community Feature Coming Soon</h3>
+                            <p>We're working on building a community platform where traders can share insights, strategies, and discuss market trends.</p>
+                            <p>Check back soon for updates!</p>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- End of page-container -->
         </main>
+
+    <!-- API Key Missing Notification -->
+    <div id="apiKeyMissing" class="api-key-missing" style="display: none;">
+        <div class="api-key-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>API Key Required</h3>
+            <p>To use real-time stock data, please add your Alpha Vantage API key in the app.js file.</p>
+            <p class="code-snippet">// In app.js, line 10:<br>const API_KEY = '<span class="highlight">YOUR_API_KEY_HERE</span>';</p>
+            <p>You can get a free API key at <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a></p>
+            <p class="note">Note: The app is currently using mock data. Add an API key for real-time data.</p>
+            <button id="closeApiKeyNotice">Continue with Mock Data</button>
+        </div>
     </div>
 
-    <!-- API Integration Notice -->
-    <div id="apiNotice" class="api-notice">
-        <p><i class="fas fa-info-circle"></i> Using simulated data. For real-time data, configure API key in app.js.</p>
-        <button id="closeApiNotice"><i class="fas fa-times"></i></button>
-    </div>
-
+    <!-- Simple chart implementation that ensures visibility -->
+    <script src="simple-chart.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
