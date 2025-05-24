@@ -186,8 +186,8 @@ function initializeChart() {
         // Store the chart in window for access from console
         window.simpleChart = chart;
         
-        // Set up live updates
-        setInterval(updateSimpleChart, 1000, chart, data);
+        // Set up live updates (5 seconds to match UPDATE_INTERVAL_MS in live-updates.js)
+        setInterval(updateSimpleChart, 5000, chart, data);
         
     } catch (error) {
         console.error('Error creating chart:', error);

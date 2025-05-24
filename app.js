@@ -23,7 +23,7 @@ let transactionHistory = [];
 
 // Live graph update settings
 let liveUpdateInterval = null;
-const UPDATE_INTERVAL_MS = 1000; // Update every 1 second for real-time experience
+const UPDATE_INTERVAL_MS = 5000; // Update every 5 seconds for a more moderate pace
 let isLiveUpdating = true; // Live updates are always active
 
 // Parameters for realistic price movements
@@ -677,7 +677,7 @@ function startLiveUpdates() {
     }
     
     // Show a notification to confirm live updates are active
-    showSuccessNotification('Live updates are now active and will update every second.');
+    showSuccessNotification('Live updates are now active and will update every 5 seconds.');
     
     return true;
 }
@@ -949,7 +949,7 @@ function startLiveUpdates() {
     }
     
     // Show a notification to confirm live updates are active
-    showSuccessNotification('Live updates are now active and will update every second.');
+    showSuccessNotification('Live updates are now active and will update every 5 seconds.');
     
     return true;
 }
@@ -1492,7 +1492,7 @@ function startLiveUpdates() {
     updateLiveChart();
     
     // Show a notification to confirm live updates are active
-    showSuccessNotification('Live updates are now active and will update every second.');
+    showSuccessNotification('Live updates are now active and will update every 5 seconds.');
     
     return true;
 }

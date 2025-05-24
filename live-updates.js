@@ -12,7 +12,7 @@
  */
 
 // Configuration
-const UPDATE_INTERVAL_MS = 1000; // Update every 1 second
+const UPDATE_INTERVAL_MS = 5000; // Update every 5 seconds (changed from 1 second)
 const VOLATILITY = 0.015; // 1.5% volatility for clearly visible movement
 const MOMENTUM_FACTOR = 0.8; // Momentum factor for realistic price trends
 
@@ -94,7 +94,7 @@ function startEnhancedLiveUpdates() {
             console.error('❌ Error in watchdog timer:', error);
             // If the watchdog itself fails, restart everything
             stopAllUpdates();
-            setTimeout(startEnhancedLiveUpdates, 1000);
+            setTimeout(startEnhancedLiveUpdates, 5000);
         }
     }, 5000); // Check every 5 seconds
     
