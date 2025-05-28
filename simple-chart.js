@@ -226,6 +226,34 @@ function updateSimpleChart(chart, initialData) {
     const isPriceUp = newPrice >= lastPrice;
     const lineColor = isPriceUp ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)';
     chart.data.datasets[0].borderColor = lineColor;
+
+    // Update fill color (gradient) based on price movement
+    const chartCtx = chart.ctx; // Get context from the chart instance
+    const chartArea = chart.chartArea; // Get the chart drawing area
+
+    // Check if context and chartArea are available before creating gradient
+    // This ensures that the gradient is only created if the chart is properly initialized
+    if (chartCtx && chartArea) {
+        // Create a new linear gradient for the fill
+        // The gradient is vertical, from the top of the chart area to the bottom
+        const gradientFill = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+
+        if (isPriceUp) {
+            // Green gradient for price increase or no change
+            // Defines color stops for the gradient: full opacity at the top, fading to transparent at the bottom
+            gradientFill.addColorStop(0, 'rgba(16, 185, 129, 0.5)');    // Start color (more opaque green)
+            gradientFill.addColorStop(0.5, 'rgba(16, 185, 129, 0.2)');  // Middle color (less opaque green)
+            gradientFill.addColorStop(1, 'rgba(16, 185, 129, 0.0)');    // End color (transparent green)
+        } else {
+            // Red gradient for price decrease
+            // Defines color stops for the gradient: full opacity at the top, fading to transparent at the bottom
+            gradientFill.addColorStop(0, 'rgba(239, 68, 68, 0.5)');     // Start color (more opaque red)
+            gradientFill.addColorStop(0.5, 'rgba(239, 68, 68, 0.2)');   // Middle color (less opaque red)
+            gradientFill.addColorStop(1, 'rgba(239, 68, 68, 0.0)');     // End color (transparent red)
+        }
+        // Apply the newly created gradient as the background color for the first dataset (the main line)
+        chart.data.datasets[0].backgroundColor = gradientFill;
+    }
     
     // Add point for the newest value to make it more visible
     chart.data.datasets[0].pointRadius = 0; // Reset all points
