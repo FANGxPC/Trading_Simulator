@@ -48,17 +48,45 @@ function initializeChart() {
     const labels = [];
     const data = [];
     
-    // Create 30 data points
+    // Create 400 data points
     const basePrice = 150;
-    for (let i = 0; i < 30; i++) {
-        // Create time labels (last 30 minutes)
-        const now = new Date();
-        const time = new Date(now.getTime() - (30-i) * 60000);
-        labels.push(time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+    const now = new Date();
+    let lastPrice = basePrice;
+    let trend = 0; // Tracks the current trend direction (-1 to 1)
+    
+    for (let i = 0; i < 400; i++) {
+        // Create time labels (last 400 seconds)
+        const time = new Date(now.getTime() - (400 - i) * 1000);
+        labels.push(time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}));
         
-        // Create price data with some randomness
-        const randomFactor = Math.random() * 10 - 5; // Random between -5 and 5
-        data.push(basePrice + randomFactor + i * 0.5); // Slight upward trend
+        // Calculate price with controlled randomness
+        const randomFactor = (Math.random() - 0.5) * 2; // Reduced randomness
+        
+        // Gradually change the trend
+        if (Math.random() > 0.95) {
+            trend = (Math.random() - 0.5) * 0.1; // Small trend changes
+        }
+        
+        // Calculate new price with trend and randomness
+        const change = (randomFactor * 0.5) + trend;
+        let newPrice = lastPrice + change;
+        
+        // Add occasional larger moves (5% chance)
+        if (Math.random() > 0.95) {
+            newPrice += (Math.random() - 0.5) * 4;
+        }
+        
+        // Keep price within reasonable bounds
+        newPrice = Math.max(basePrice * 0.9, Math.min(basePrice * 1.1, newPrice));
+        
+        // Add some momentum (40% of previous move)
+        if (i > 0) {
+            const momentum = (data[i-1] - (i > 1 ? data[i-2] : data[i-1])) * 0.4;
+            newPrice += momentum;
+        }
+        
+        data.push(parseFloat(newPrice.toFixed(2)));
+        lastPrice = newPrice;
     }
     
     // Create a gradient for the chart
@@ -82,23 +110,38 @@ function initializeChart() {
                         label: 'AAPL',
                         data: data,
                         borderColor: 'rgb(16, 185, 129)',
-                        backgroundColor: gradient,
-                        borderWidth: 3,                  // Thicker line for better visibility
-                        tension: 0.4,                    // Smooth curve
-                        fill: true,                      // Fill area under the line
-                        pointRadius: 0,                  // Hide points on the main line
-                        cubicInterpolationMode: 'monotone' // Smoother curve that respects data points
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 1,
+                        tension: 0,                    // Keep the smooth curve
+                        pointRadius: 0,                   // Hide points by default
+                        pointHoverRadius: 5,             // Show larger points on hover
+                        pointBackgroundColor: 'white',    // White fill for points
+                        pointBorderColor: 'rgb(16, 185, 129)', // Green border for points
+                        pointBorderWidth: 2,              // Border width for points
+                        pointHoverBorderWidth: 3,         // Thicker border on hover
+                        fill: true,                      // Keep the fill under the line
+                        borderJoinStyle: 'round',        // Smooth line joins
+                        borderCapStyle: 'round',         // Smooth line caps
+                        cubicInterpolationMode: 'monotone' // Smooth curve
                     },
                     // Dataset for the latest point (will be updated in updateSimpleChart)
                     {
                         label: 'Current',
                         data: Array(data.length - 1).fill(null).concat([data[data.length - 1]]),
-                        borderColor: 'rgb(16, 185, 129)',
-                        backgroundColor: 'rgb(16, 185, 129)',
-                        pointRadius: 5,                  // Large point for the latest value
-                        pointHoverRadius: 8,             // Even larger on hover
-                        pointStyle: 'circle',            // Circle point style
-                        showLine: false                  // Don't show line, just the point
+                        borderColor: 'rgba(16, 185, 129, 0.9)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.9)',
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 7,
+                        pointStyle: 'circle',
+                        pointBorderColor: 'rgb(16, 185, 129)',
+                        pointHoverBorderColor: 'rgb(16, 185, 129)',
+                        pointHoverBackgroundColor: 'white',
+                        showLine: false,
+                        // Disable default animations
+                        animation: {
+                            duration: 1000
+                        }
                     }
                 ]
             },
@@ -106,8 +149,18 @@ function initializeChart() {
                 responsive: true,
                 maintainAspectRatio: false,
                 animation: {
-                    duration: 500,                      // Faster animation
-                    easing: 'easeOutQuad'               // Smooth easing function
+                    duration: 1000,  // Match the update duration
+                    easing: 'easeInOutQuad',
+                    x: {
+                        type: 'number',
+                        easing: 'easeInOutQuad',
+                        duration: 1000
+                    },
+                    y: {
+                        type: 'number',
+                        easing: 'easeInOutQuad',
+                        duration: 1000
+                    }
                 },
                 plugins: {
                     legend: {
@@ -135,14 +188,29 @@ function initializeChart() {
                 scales: {
                     x: {
                         grid: {
-                            display: false                // Hide x grid lines
+                            display: false
                         },
                         ticks: {
-                            color: '#94a3b8',             // Lighter text color
+                            color: '#94a3b8',
                             font: {
-                                size: 10                  // Smaller font
+                                size: 10
                             },
-                            maxTicksLimit: 6             // Limit number of ticks
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 10, // Show fewer ticks to prevent crowding
+                            callback: function(value, index, values) {
+                                // Show full time with seconds for better readability
+                                return this.getLabelForValue(value);
+                            }
+                        },
+                        time: {
+                            displayFormats: {
+                                millisecond: 'HH:mm:ss',
+                                second: 'HH:mm:ss',
+                                minute: 'HH:mm:ss',
+                                hour: 'HH:mm:ss'
+                            },
+                            tooltipFormat: 'HH:mm:ss.SSS' // Show milliseconds in tooltip
                         }
                     },
                     y: {
@@ -186,11 +254,72 @@ function initializeChart() {
         // Store the chart in window for access from console
         window.simpleChart = chart;
         
-        // Set up live updates (5 seconds to match UPDATE_INTERVAL_MS in live-updates.js)
-        setInterval(updateSimpleChart, 5000, chart, data);
+        // Show welcome message
+        console.log('%c🚀 Welcome to Trading Simulation!', 'color: #10b981; font-size: 16px; font-weight: bold;');
+        console.log('%cMonitor real-time price movements and track market trends.', 'color: #6b7280;');
+        
+        // Set up live updates (1 second interval for smooth updates)
+        setInterval(updateSimpleChart, 1000, chart, data);
         
     } catch (error) {
-        console.error('Error creating chart:', error);
+        console.error('Error initializing trading simulation:', error);
+    }
+}
+
+// Add these variables at the top of the file
+let animationId = null;
+let currentDot = { x: 0, y: 0 };
+let targetDot = { x: 0, y: 0 };
+let animationStart = 0;
+const ANIMATION_DURATION = 1000; // 1 second
+
+function animateDot(timestamp) {
+    if (!animationStart) animationStart = timestamp;
+    const progress = Math.min((timestamp - animationStart) / ANIMATION_DURATION, 1);
+    
+    // Easing function for smooth animation (easeOutQuad)
+    const easeOut = t => t * (2 - t);
+    
+    // Calculate new position
+    const x = currentDot.x + (targetDot.x - currentDot.x) * easeOut(progress);
+    const y = currentDot.y + (targetDot.y - currentDot.y) * easeOut(progress);
+    
+    // Update the dot's position directly
+    const dot = window.simpleChart?.getDatasetMeta(1)?.data[window.simpleChart.getDatasetMeta(1).data.length - 1];
+    if (dot) {
+        dot.x = x;
+        dot.y = y;
+        window.simpleChart.draw();
+    }
+    
+    if (progress < 1) {
+        animationId = requestAnimationFrame(animateDot);
+    } else {
+        animationId = null;
+        animationStart = 0;
+    }
+}
+
+function updateDotPosition() {
+    if (!window.simpleChart) return;
+    
+    const dot = window.simpleChart.getDatasetMeta(1)?.data[window.simpleChart.getDatasetMeta(1).data.length - 1];
+    if (!dot) return;
+    
+    // Store current position
+    currentDot = { x: dot.x, y: dot.y };
+    
+    // Get the new target position
+    window.simpleChart.update('none');
+    const newDot = window.simpleChart.getDatasetMeta(1).data[window.simpleChart.getDatasetMeta(1).data.length - 1];
+    if (newDot) {
+        targetDot = { x: newDot.x, y: newDot.y };
+        
+        // Start animation if not already running
+        if (!animationId) {
+            animationStart = 0;
+            animationId = requestAnimationFrame(animateDot);
+        }
     }
 }
 
@@ -202,106 +331,53 @@ function updateSimpleChart(chart, initialData) {
     if (!chart) return;
     
     // Get the last price
-    const lastPrice = chart.data.datasets[0].data[chart.data.datasets[0].data.length - 1];
+    const lastPrice = chart.data.datasets[0].data[chart.data.datasets[0].data.length - 1] || 150; // Default to base price if no data
     
-    // Generate a new price with more significant randomness for visibility
-    const randomChange = (Math.random() - 0.5) * 4; // Random between -2 and 2 (more visible)
+    // Generate a new price with controlled randomness
+    const randomChange = (Math.random() - 0.5) * 2; // Random between -1 and 1
     const newPrice = lastPrice + randomChange;
     
     // Get current time
     const now = new Date();
     const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
     
-    // Add new data
+    // Add new data point
     chart.data.labels.push(timeStr);
     chart.data.datasets[0].data.push(newPrice);
     
-    // Remove oldest data point if we have more than 30
-    if (chart.data.labels.length > 30) {
+    // Update the current point dataset (the dot at the end)
+    if (chart.data.datasets[1]) {
+        chart.data.datasets[1].data = Array(chart.data.datasets[0].data.length - 1).fill(null).concat([newPrice]);
+        
+        // Update the dot position with smooth animation
+        setTimeout(updateDotPosition, 0);
+    }
+    
+    // Remove oldest data point if needed
+    if (chart.data.labels.length > 400) {
+        chart.options.animation = false;
         chart.data.labels.shift();
         chart.data.datasets[0].data.shift();
-    }
-    
-    // Update chart color based on price movement
-    const isPriceUp = newPrice >= lastPrice;
-    const lineColor = isPriceUp ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)';
-    chart.data.datasets[0].borderColor = lineColor;
-
-    // Update fill color (gradient) based on price movement
-    const chartCtx = chart.ctx; // Get context from the chart instance
-    const chartArea = chart.chartArea; // Get the chart drawing area
-
-    // Check if context and chartArea are available before creating gradient
-    // This ensures that the gradient is only created if the chart is properly initialized
-    if (chartCtx && chartArea) {
-        // Create a new linear gradient for the fill
-        // The gradient is vertical, from the top of the chart area to the bottom
-        const gradientFill = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-
-        if (isPriceUp) {
-            // Green gradient for price increase or no change
-            // Defines color stops for the gradient: full opacity at the top, fading to transparent at the bottom
-            gradientFill.addColorStop(0, 'rgba(16, 185, 129, 0.5)');    // Start color (more opaque green)
-            gradientFill.addColorStop(0.5, 'rgba(16, 185, 129, 0.2)');  // Middle color (less opaque green)
-            gradientFill.addColorStop(1, 'rgba(16, 185, 129, 0.0)');    // End color (transparent green)
-        } else {
-            // Red gradient for price decrease
-            // Defines color stops for the gradient: full opacity at the top, fading to transparent at the bottom
-            gradientFill.addColorStop(0, 'rgba(239, 68, 68, 0.5)');     // Start color (more opaque red)
-            gradientFill.addColorStop(0.5, 'rgba(239, 68, 68, 0.2)');   // Middle color (less opaque red)
-            gradientFill.addColorStop(1, 'rgba(239, 68, 68, 0.0)');     // End color (transparent red)
+        // Also update the current point dataset after shift
+        if (chart.data.datasets[1]) {
+            chart.data.datasets[1].data.shift();
         }
-        // Apply the newly created gradient as the background color for the first dataset (the main line)
-        chart.data.datasets[0].backgroundColor = gradientFill;
     }
     
-    // Add point for the newest value to make it more visible
-    chart.data.datasets[0].pointRadius = 0; // Reset all points
+    // Store the last position for smooth animation
+    if (!chart.lastY) chart.lastY = newPrice;
     
-    // Create a second dataset just for the newest point
-    if (!chart.data.datasets[1]) {
-        chart.data.datasets.push({
-            data: Array(chart.data.datasets[0].data.length - 1).fill(null).concat([newPrice]),
-            borderColor: lineColor,
-            backgroundColor: lineColor,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointStyle: 'circle',
-            showLine: false
-        });
-    } else {
-        // Update the point dataset
-        chart.data.datasets[1].data = Array(chart.data.datasets[0].data.length - 1).fill(null).concat([newPrice]);
-        chart.data.datasets[1].borderColor = lineColor;
-        chart.data.datasets[1].backgroundColor = lineColor;
-    }
+    // Calculate the difference for smooth transition
+    const diff = newPrice - chart.lastY;
+    chart.lastY = newPrice;
     
-    // Ensure y-axis scale updates to show the new value
-    const min = Math.min(...chart.data.datasets[0].data) * 0.99;
-    const max = Math.max(...chart.data.datasets[0].data) * 1.01;
-    chart.options.scales.y.min = min;
-    chart.options.scales.y.max = max;
-    
-    // Update the chart with animation
+    // Update chart with smooth animation for the dot
     chart.update({
-        duration: 300,
-        easing: 'easeOutQuad'
+        duration: 1000,  // Longer duration for smoother animation
+        easing: 'easeInOutQuad',  // Smoother easing function
+        onComplete: function() {
+            // Reset the animation state
+            chart.lastUpdate = Date.now();
+        }
     });
-    
-    // Update price display in the UI if elements exist
-    const priceElement = document.getElementById('chartPrice');
-    if (priceElement) {
-        priceElement.textContent = `$${newPrice.toFixed(2)}`;
-        priceElement.className = isPriceUp ? 'price up' : 'price down';
-    }
-    
-    const changeElement = document.getElementById('chartPriceChange');
-    if (changeElement) {
-        const changePercent = (randomChange / lastPrice) * 100;
-        changeElement.textContent = `${isPriceUp ? '+' : ''}${changePercent.toFixed(2)}%`;
-        changeElement.className = isPriceUp ? 'change up' : 'change down';
-    }
-    
-    // Log the update
-    console.log(`Chart updated: $${newPrice.toFixed(2)} (${isPriceUp ? '+' : '-'}${Math.abs(randomChange).toFixed(2)})`);
 }

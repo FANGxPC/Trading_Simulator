@@ -677,7 +677,7 @@ function startLiveUpdates() {
     }
     
     // Show a notification to confirm live updates are active
-    showSuccessNotification('Live updates are now active and will update every 5 seconds.');
+    // showSuccessNotification('Live updates are now active and will update every 5 seconds.');
     
     return true;
 }
@@ -1142,7 +1142,7 @@ function showSuccessNotification(message) {
         title: 'Success',
         message: message,
         icon: 'check-circle',
-        duration: 3000
+        duration: 5000
     });
 }
 
@@ -1491,8 +1491,8 @@ function startLiveUpdates() {
     updateMarketDataAndUI();
     updateLiveChart();
     
-    // Show a notification to confirm live updates are active
-    showSuccessNotification('Live updates are now active and will update every 5 seconds.');
+    // // Show a notification to confirm live updates are active
+    // showSuccessNotification('Live updates are now active and will update every 5 seconds.');
     
     return true;
 }
@@ -2317,7 +2317,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startLiveUpdates();
     
     // Show welcome notification
-    showSuccessNotification('Welcome to StockVibe Trading Simulator! Live updates are enabled.');
+    showSuccessNotification(`Welcome to the Trading Simulator!`);
     
     // Add resize listener for chart responsiveness
     window.addEventListener('resize', () => {
