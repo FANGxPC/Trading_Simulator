@@ -9,21 +9,82 @@
 // Stocks tracked by default
 const defaultTrackedSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'META'];
 
-// Initial state
+// Initial state - will be loaded from storage
 let portfolio = {};
 let balance = 10000;
 let previousBalance = 10000; // For tracking change
 let lastPortfolioTotal = 0;  // For tracking change
 
-// Market data cache
+// Market data cache (not persisted)
 let marketData = {};
 
-// Transaction history
+// Transaction history (will be loaded from storage)
 let transactionHistory = [];
+
+// Load saved data if available
+function loadSavedData() {
+    if (window.tradingStorage && typeof window.tradingStorage.loadAllData === 'function') {
+        const savedData = window.tradingStorage.loadAllData();
+        if (savedData) {
+            portfolio = savedData.portfolio || {};
+            balance = savedData.balance || 10000;
+            previousBalance = balance;
+            transactionHistory = savedData.transactions || [];
+            console.log('Loaded saved data from storage');
+        }
+    } else {
+        console.warn('Storage module not loaded, using default values');
+    }
+}
+
+// Save current state to storage
+function saveCurrentState() {
+    if (window.tradingStorage && typeof window.tradingStorage.saveAllData === 'function') {
+        window.tradingStorage.saveAllData({
+            portfolio,
+            balance,
+            transactions: transactionHistory
+        });
+    } else {
+        console.warn('Cannot save state: Storage module not available');
+    }
+}
+
+// Initialize data when the DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    loadSavedData();
+    setupResetButton();
+});
+
+// Save state before page unload
+window.addEventListener('beforeunload', saveCurrentState);
+
+// Also save periodically in case of crashes
+setInterval(saveCurrentState, 30000); // Save every 30 seconds
+
+// Setup reset button functionality
+function setupResetButton() {
+    const resetBtn = document.getElementById('resetDataBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to reset all data? This will delete your portfolio, balance, and transaction history.')) {
+                if (window.tradingStorage && typeof window.tradingStorage.clearAllData === 'function') {
+                    window.tradingStorage.clearAllData();
+                    // Show success message
+                    showSuccessNotification('All data has been reset successfully!');
+                    // Reload the page after a short delay
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showErrorNotification('Error: Could not reset data. Storage module not available.');
+                }
+            }
+        });
+    }
+}
 
 // Live graph update settings
 let liveUpdateInterval = null;
-const UPDATE_INTERVAL_MS = 1000; // Update every 5 seconds for a more moderate pace
+const UPDATE_INTERVAL_MS = 2500; // Update every 5 seconds for a more moderate pace
 let isLiveUpdating = true; // Live updates are always active
 
 // Parameters for realistic price movements
@@ -1036,14 +1097,18 @@ tradeForm.addEventListener('submit', async function(e) {
         portfolio[symbol].quantity += quantity;
         
         // Record transaction in history
-        transactionHistory.push({
+        const transaction = {
             type: 'buy',
             symbol,
             quantity,
             price: currentPrice,
             total: totalCost,
             timestamp: Date.now()
-        });
+        };
+        transactionHistory.push(transaction);
+        
+        // Save the updated state
+        saveCurrentState();
         
         // Success message
         showSuccessNotification(`Successfully bought ${quantity} shares of ${symbol} at $${currentPrice.toFixed(2)}.`);
@@ -1070,14 +1135,18 @@ tradeForm.addEventListener('submit', async function(e) {
         }
         
         // Record transaction in history
-        transactionHistory.push({
+        const transaction = {
             type: 'sell',
             symbol,
             quantity,
             price: currentPrice,
             total: totalCost,
             timestamp: Date.now()
-        });
+        };
+        transactionHistory.push(transaction);
+        
+        // Save the updated state
+        saveCurrentState();
         
         // Success message
         showSuccessNotification(`Successfully sold ${quantity} shares of ${symbol} at $${currentPrice.toFixed(2)} with a ${profitLossText}.`);

@@ -259,7 +259,7 @@ function initializeChart() {
         console.log('%cMonitor real-time price movements and track market trends.', 'color: #6b7280;');
         
         // Set up live updates (1 second interval for smooth updates)
-        setInterval(updateSimpleChart, 1000, chart, data);
+        setInterval(updateSimpleChart, 2500, chart, data);
         
     } catch (error) {
         console.error('Error initializing trading simulation:', error);

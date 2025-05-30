@@ -20,6 +20,44 @@ body {
     min-height: 100vh;
 }
 
+/* Reset Button Styles */
+.reset-container {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0 20px 10px 0;
+}
+
+.reset-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reset-btn:hover {
+    background-color: #cc0000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.reset-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.reset-btn i {
+    font-size: 14px;
+}
+
 /* Sidebar Styles */
 .sidebar {
     width: 240px;

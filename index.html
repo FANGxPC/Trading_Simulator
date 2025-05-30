@@ -70,6 +70,11 @@
                 
                 <!-- Dashboard Page -->
                 <div class="page" id="dashboard-page" data-page="dashboard">
+                    <div class="reset-container">
+                        <button id="resetDataBtn" class="reset-btn" title="Reset all data">
+                            <i class="fas fa-trash-alt"></i> Reset All Data
+                        </button>
+                    </div>
                 <!-- Stats Overview Cards -->
                 <section class="stats-cards">
                     <div class="stat-card total-balance">
@@ -380,8 +385,11 @@
         </div>
     </div>
 
-    <!-- Simple chart implementation that ensures visibility -->
-    <script src="simple-chart.js"></script>
+    <!-- Storage and core functionality -->
+    <script src="storage.js"></script>
     <script src="app.js"></script>
+    <script src="simple-chart.js"></script>
+    
+    <!-- Reset button script will be added by app.js -->
 </body>
 </html>
