@@ -50,11 +50,37 @@ function saveCurrentState() {
     }
 }
 
-// Initialize data when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    loadSavedData();
-    setupResetButton();
-});
+// Wait for everything to be loaded
+function initializeApp() {
+    // Check if storage is available
+    const storageAvailable = () => {
+        try {
+            const testKey = '__test__';
+            localStorage.setItem(testKey, testKey);
+            localStorage.removeItem(testKey);
+            return true;
+        } catch (e) {
+            console.error('LocalStorage is not available', e);
+            return false;
+        }
+    };
+
+    if (storageAvailable()) {
+        loadSavedData();
+        setupResetButton();
+    } else {
+        console.warn('LocalStorage is not available. Some features may not work.');
+        showErrorNotification('Warning: Local storage is not available. Your data will not be saved.');
+    }
+}
+
+// Initialize when DOM is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    // DOMContentLoaded has already fired
+    setTimeout(initializeApp, 0);
+}
 
 // Save state before page unload
 window.addEventListener('beforeunload', saveCurrentState);
@@ -65,21 +91,58 @@ setInterval(saveCurrentState, 30000); // Save every 30 seconds
 // Setup reset button functionality
 function setupResetButton() {
     const resetBtn = document.getElementById('resetDataBtn');
-    if (resetBtn) {
-        resetBtn.addEventListener('click', function() {
-            if (confirm('Are you sure you want to reset all data? This will delete your portfolio, balance, and transaction history.')) {
-                if (window.tradingStorage && typeof window.tradingStorage.clearAllData === 'function') {
-                    window.tradingStorage.clearAllData();
-                    // Show success message
-                    showSuccessNotification('All data has been reset successfully!');
-                    // Reload the page after a short delay
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showErrorNotification('Error: Could not reset data. Storage module not available.');
-                }
-            }
-        });
+    if (!resetBtn) {
+        console.warn('Reset button not found');
+        return;
     }
+
+    // Remove any existing click handlers to prevent duplicates
+    const newBtn = resetBtn.cloneNode(true);
+    resetBtn.parentNode.replaceChild(newBtn, resetBtn);
+    
+    newBtn.addEventListener('click', async function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (!confirm('Are you sure you want to reset all data? This will delete your portfolio, balance, and transaction history.')) {
+            return;
+        }
+
+        // Show loading state
+        const originalText = newBtn.innerHTML;
+        newBtn.disabled = true;
+        newBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Resetting...';
+        
+        try {
+            // Clear all data from storage
+            localStorage.clear();
+            
+            // Reset in-memory state
+            portfolio = {};
+            balance = 10000;
+            previousBalance = 10000;
+            transactionHistory = [];
+            
+            // Force a hard refresh to reset everything
+            setTimeout(() => {
+                // Clear any cached data
+                if (window.performance && window.performance.navigation && window.performance.navigation.type === 1) {
+                    // Page was reloaded, force a hard refresh
+                    window.location.href = window.location.origin + window.location.pathname + '?reset=' + Date.now();
+                } else {
+                    window.location.reload(true);
+                }
+            }, 500);
+            
+        } catch (error) {
+            console.error('Error resetting data:', error);
+            showErrorNotification('Error: Could not reset data. Please try again.');
+            newBtn.disabled = false;
+            newBtn.innerHTML = originalText;
+        }
+    });
+    
+    console.log('Reset button initialized');
 }
 
 // Live graph update settings

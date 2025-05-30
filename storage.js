@@ -59,7 +59,7 @@ function clearAllData() {
 }
 
 // Export the storage API
-window.tradingStorage = {
+const tradingStorage = {
     loadAllData,
     saveAllData,
     clearAllData
@@ -67,3 +67,6 @@ window.tradingStorage = {
 
 // For debugging in console
 console.log('%cStorage module loaded', 'color: #4CAF50; font-weight: bold;');
+
+// Make it globally available
+window.tradingStorage = tradingStorage;
