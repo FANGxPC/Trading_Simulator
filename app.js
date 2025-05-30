@@ -23,7 +23,7 @@ let transactionHistory = [];
 
 // Live graph update settings
 let liveUpdateInterval = null;
-const UPDATE_INTERVAL_MS = 5000; // Update every 5 seconds for a more moderate pace
+const UPDATE_INTERVAL_MS = 1000; // Update every 5 seconds for a more moderate pace
 let isLiveUpdating = true; // Live updates are always active
 
 // Parameters for realistic price movements
