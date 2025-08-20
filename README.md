@@ -4,7 +4,7 @@ A realistic stock trading simulator that lets you practice buying and selling st
 
 ---
 
-Check out the [Trading Simulator](https://github.com/FANGXPC/Trading_Simulator) for a realistic stock trading experience.
+Check out the [Trading Simulator](https://fangxpc.github.io/Trading_Simulator/#) for a realistic stock trading experience.
 
 ## 🚀 Features
 
