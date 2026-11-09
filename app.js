@@ -6,6 +6,7 @@
 
 // === Configuration ===
 
+
 // Stocks tracked by default
 const defaultTrackedSymbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', 'AMZN', 'META'];
 
